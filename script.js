@@ -1,34 +1,98 @@
-const selected = [];
-const selection = document.querySelector("#selection");
-const empty = document.querySelector("#empty");
+const selectionne = [];
 
-function render(){
-  selection.innerHTML = "";
-  empty.textContent = selected.length ? "Produits sélectionnés :" : "Aucun produit sélectionné.";
-  selected.forEach((name,i)=>{
-    const row=document.createElement("div");
-    row.className="selected";
-    row.innerHTML=`<span>${name}</span><button class="filter" data-remove="${i}">Retirer</button>`;
-    selection.appendChild(row);
-  });
-  document.querySelectorAll("[data-remove]").forEach(b=>b.onclick=()=>{selected.splice(Number(b.dataset.remove),1);render()});
+const selection = document.querySelector("#selection");
+const vide = document.querySelector("#empty");
+
+function rendre() {
+    selection.innerHTML = "";
+
+    if (selectionne.length > 0) {
+        vide.textContent = "Produits sélectionnés :";
+    } else {
+        vide.textContent = "Aucun produit sélectionné.";
+    }
+
+    selectionne.forEach((nom, i) => {
+        const rangee = document.createElement("div");
+        rangee.className = "selectionne";
+
+        rangee.innerHTML = `
+            <span>${nom}</span>
+            <button class="filtre" data-remove="${i}">
+                Retirer
+            </button>
+        `;
+
+        selection.appendChild(rangee);
+    });
+
+    document.querySelectorAll("[data-remove]").forEach(button => {
+        button.onclick = () => {
+            const index = Number(button.dataset.remove);
+            selectionne.splice(index, 1);
+            rendre();
+        };
+    });
 }
-document.querySelectorAll(".select").forEach(b=>b.onclick=()=>{
-  const name=b.dataset.product;
-  if(!selected.includes(name)) selected.push(name);
-  render();
-  location.hash="demande";
+
+document.querySelectorAll(".select").forEach(button => {
+    button.onclick = () => {
+        const nom = button.dataset.produit;
+
+        if (!selectionne.includes(nom)) {
+            selectionne.push(nom);
+        }
+
+        rendre();
+
+        window.location.hash = "demande";
+    };
 });
-document.querySelector("#clear").onclick=()=>{selected.length=0;render()};
-document.querySelector("#send").onclick=()=>{
-  if(!selected.length){alert("Sélectionnez au moins un produit.");return}
-  const msg="Bonjour BOKORI,%0A%0AJe souhaite avoir des informations sur :%0A- "+selected.join("%0A- ")+"%0A%0AMerci.";
-  window.open("https://wa.me/23562118511?text="+msg,"_blank");
+
+document.querySelector("#clear").onclick = () => {
+    selectionne.length = 0;
+    rendre();
 };
-document.querySelectorAll(".filter").forEach(b=>b.onclick=()=>{
-  if(!b.dataset.filter)return;
-  document.querySelectorAll(".filter").forEach(x=>x.classList.remove("active"));
-  b.classList.add("active");
-  document.querySelectorAll(".product").forEach(p=>p.style.display=(b.dataset.filter==="all"||p.dataset.category===b.dataset.filter)?"":"none");
+
+document.querySelector("#send").onclick = () => {
+    if (selectionne.length === 0) {
+        alert("Sélectionnez au moins un produit.");
+        return;
+    }
+
+    const MSG =
+        "Bonjour BOKORI, je souhaite avoir des informations sur : " +
+        selectionne.join(" - ") +
+        " Merci.";
+
+    window.open(
+        "https://wa.me/23562118511?text=" + encodeURIComponent(MSG),
+        "_blank"
+    );
+};
+
+document.querySelectorAll(".filter").forEach(button => {
+    button.onclick = () => {
+        const filtre = button.dataset.filtre;
+
+        if (!filtre) return;
+
+        document.querySelectorAll(".filter").forEach(x => {
+            x.classList.remove("actif");
+        });
+
+        button.classList.add("actif");
+
+        document.querySelectorAll(".produit").forEach(produit => {
+            const categorie = produit.dataset.categorie;
+
+            if (filtre === "tous" || categorie === filtre) {
+                produit.style.display = "";
+            } else {
+                produit.style.display = "none";
+            }
+        });
+    };
 });
-render();
+
+rendre();
