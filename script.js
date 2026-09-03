@@ -3,96 +3,127 @@ const selectionne = [];
 const selection = document.querySelector("#selection");
 const vide = document.querySelector("#empty");
 
-function rendre() {
-    selection.innerHTML = "";
+function render() {
+  selection.innerHTML = "";
 
-    if (selectionne.length > 0) {
-        vide.textContent = "Produits sélectionnés :";
-    } else {
-        vide.textContent = "Aucun produit sélectionné.";
-    }
+  if (selectionne.length === 0) {
+    vide.style.display = "block";
+    return;
+  }
 
-    selectionne.forEach((nom, i) => {
-        const rangee = document.createElement("div");
-        rangee.className = "selectionne";
+  vide.style.display = "none";
 
-        rangee.innerHTML = `
-            <span>${nom}</span>
-            <button class="filtre" data-remove="${i}">
-                Retirer
-            </button>
-        `;
+  selectionne.forEach((produit, index) => {
+    const item = document.createElement("div");
+    item.className = "selected-item";
 
-        selection.appendChild(rangee);
+    item.innerHTML = `
+      <span>${produit}</span>
+      <button type="button" data-remove="${index}">Retirer</button>
+    `;
+
+    selection.appendChild(item);
+  });
+
+  document.querySelectorAll("[data-remove]").forEach(button => {
+    button.addEventListener("click", () => {
+      selectionne.splice(Number(button.dataset.remove), 1);
+      render();
     });
-
-    document.querySelectorAll("[data-remove]").forEach(button => {
-        button.onclick = () => {
-            const index = Number(button.dataset.remove);
-            selectionne.splice(index, 1);
-            rendre();
-        };
-    });
+  });
 }
 
+
+/* CHOIX DES PRODUITS */
 document.querySelectorAll(".select").forEach(button => {
-    button.onclick = () => {
-        const nom = button.dataset.produit;
+  button.addEventListener("click", () => {
+    const produit = button.dataset.product;
 
-        if (!selectionne.includes(nom)) {
-            selectionne.push(nom);
-        }
-
-        rendre();
-
-        window.location.hash = "demande";
-    };
-});
-
-document.querySelector("#clear").onclick = () => {
-    selectionne.length = 0;
-    rendre();
-};
-
-document.querySelector("#send").onclick = () => {
-    if (selectionne.length === 0) {
-        alert("Sélectionnez au moins un produit.");
-        return;
+    if (!selectionne.includes(produit)) {
+      selectionne.push(produit);
     }
 
-    const MSG =
-        "Bonjour BOKORI, je souhaite avoir des informations sur : " +
-        selectionne.join(" - ") +
-        " Merci.";
+    render();
 
-    window.open(
-        "https://wa.me/23562118511?text=" + encodeURIComponent(MSG),
-        "_blank"
-    );
-};
+    const demande = document.querySelector("#demande");
 
-document.querySelectorAll(".filter").forEach(button => {
-    button.onclick = () => {
-        const filtre = button.dataset.filtre;
-
-        if (!filtre) return;
-
-        document.querySelectorAll(".filter").forEach(x => {
-            x.classList.remove("actif");
-        });
-
-        button.classList.add("actif");
-
-        document.querySelectorAll(".produit").forEach(produit => {
-            const categorie = produit.dataset.categorie;
-
-            if (filtre === "tous" || categorie === filtre) {
-                produit.style.display = "";
-            } else {
-                produit.style.display = "none";
-            }
-        });
-    };
+    if (demande) {
+      demande.scrollIntoView({
+        behavior: "smooth"
+      });
+    }
+  });
 });
 
-rendre();
+
+/* VIDER LA SÉLECTION */
+const clearButton = document.querySelector("#clear");
+
+if (clearButton) {
+  clearButton.addEventListener("click", () => {
+    selectionne.length = 0;
+    render();
+  });
+}
+
+
+/* ENVOYER SUR WHATSAPP */
+const sendButton = document.querySelector("#send");
+
+if (sendButton) {
+  sendButton.addEventListener("click", () => {
+
+    if (selectionne.length === 0) {
+      alert("Veuillez sélectionner au moins un produit.");
+      return;
+    }
+
+    const message =
+      "Bonjour BOKORI, je suis intéressé(e) par :\n\n" +
+      selectionne.map(produit => "• " + produit).join("\n") +
+      "\n\nJe souhaite avoir plus d'informations.";
+
+    /* NUMÉRO WHATSAPP : 69829393 */
+    const numeroWhatsApp = "23569829393";
+
+    const url =
+      "https://wa.me/" +
+      numeroWhatsApp +
+      "?text=" +
+      encodeURIComponent(message);
+
+    window.open(url, "_blank");
+  });
+}
+
+
+/* FILTRES DES PRODUITS */
+document.querySelectorAll(".filter").forEach(filter => {
+  filter.addEventListener("click", () => {
+
+    document.querySelectorAll(".filter").forEach(item => {
+      item.classList.remove("active");
+    });
+
+    filter.classList.add("active");
+
+    const categorie = filter.dataset.filter;
+
+    document.querySelectorAll(".product").forEach(product => {
+
+      if (
+        categorie === "all" ||
+        product.dataset.category === categorie
+      ) {
+        product.style.display = "";
+      } else {
+        product.style.display = "none";
+      }
+
+    });
+  });
+});
+
+
+/* AFFICHAGE INITIAL */
+render();
